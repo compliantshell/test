@@ -1,11 +1,1124 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Praktische Kubernetes + Spring Boot guide (GitHub Pages): containerization, manifests, ingress, autoscaling, observability, security, CI/CD en diagrammen." />
+  <meta name="theme-color" content="#0b0f19" />
+  <title>Kubernetes + Spring Boot — Praktische Guide</title>
+
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --panel:#0f1628;
+      --card:#121a2b;
+      --text:#e6e8ef;
+      --muted:#a9b0c3;
+      --accent:#6aa6ff;
+      --accent2:#79f2c0;
+      --warn:#ffcc66;
+      --border:#223053;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      --max: 1120px;
+    }
+
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: radial-gradient(900px 450px at 20% 5%, rgba(106,166,255,.20), transparent 55%),
+                  radial-gradient(900px 450px at 80% 0%, rgba(121,242,192,.12), transparent 50%),
+                  var(--bg);
+      color: var(--text);
+    }
+
+    a{ color: var(--text); }
+    .wrap{ max-width: var(--max); margin:0 auto; padding: 0 20px; }
+
+    /* Top bar */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,25,.72);
+      border-bottom: 1px solid rgba(34,48,83,.75);
+    }
+    .topbar-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px 0;
+      gap: 14px;
+    }
+
+    .topbar-middle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background: linear-gradient(135deg, rgba(173,137,231,.95), rgba(121,242,192,.70));
+      padding: 12px 0;
+      gap: 14px;
+    }
+    
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 220px;
+    }
+    .logo{
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(106,166,255,.95), rgba(121,242,192,.70));
+      box-shadow: 0 0 0 3px rgba(106,166,255,.12);
+    }
+    .brand h3{
+      margin:0;
+      font-size: 14px;
+      letter-spacing: .2px;
+      line-height: 1.2;
+    }
+    .brand small{
+      display:block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    /* Search */
+    .search{
+      flex: 1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      max-width: 520px;
+    }
+    .search input{
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(34,48,83,.85);
+      border-radius: 12px;
+      background: rgba(18,26,43,.55);
+      color: var(--text);
+      outline: none;
+    }
+    .search input:focus{
+      border-color: rgba(106,166,255,.55);
+      box-shadow: 0 0 0 3px rgba(106,166,255,.14);
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid rgba(34,48,83,.95);
+      border-bottom-color: rgba(34,48,83,.55);
+      background: rgba(18,26,43,.55);
+      border-radius: 10px;
+      padding: 6px 8px;
+      white-space: nowrap;
+    }
+
+    /* Header hero */
+    header.hero{
+      padding: 44px 0 24px;
+      border-bottom: 1px solid rgba(34,48,83,.85);
+      background: linear-gradient(180deg, rgba(106,166,255,.08), transparent 55%);
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .hero-grid{ grid-template-columns: 1fr; }
+      .brand{ min-width: unset; }
+      .search{ max-width: unset; }
+    }
+
+    h1{
+      margin:0 0 10px;
+      font-size: 38px;
+      letter-spacing: .2px;
+      line-height: 1.15;
+    }
+    .subtitle{
+      margin:0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+      max-width: 74ch;
+    }
+
+    .badges{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(34,48,83,.95);
+      background: rgba(18,26,43,.60);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 99px;
+      background: rgba(106,166,255,.9);
+      box-shadow: 0 0 0 3px rgba(106,166,255,.12);
+    }
+    .dot.green{ background: rgba(121,242,192,.85); box-shadow: 0 0 0 3px rgba(121,242,192,.12); }
+    .dot.warn{ background: rgba(255,204,102,.9); box-shadow: 0 0 0 3px rgba(255,204,102,.12); }
+
+    .navchips{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .btn{
+      display:inline-block;
+      padding: 10px 14px;
+      border: 1px solid rgba(34,48,83,.95);
+      color: var(--text);
+      text-decoration:none;
+      border-radius: 14px;
+      background: rgba(18,26,43,.60);
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(106,166,255,.55);
+      box-shadow: 0 0 0 3px rgba(106,166,255,.12);
+    }
+    .btn.primary{
+      border-color: rgba(106,166,255,.65);
+      background: linear-gradient(135deg, rgba(106,166,255,.18), rgba(18,26,43,.65));
+    }
+
+    /* Layout */
+    main{ padding: 26px 0 70px; }
+    .layout{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+      .toc{ position: static !important; }
+    }
+
+    /* Cards */
+    .card{
+      background: rgba(18,26,43,.75);
+      border: 1px solid rgba(34,48,83,.92);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .card.pad{ padding: 16px; }
+    .card h2{
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    .card p{ margin:0; color: var(--muted); line-height: 1.65; }
+    .card + .card{ margin-top: 16px; }
+
+    /* TOC */
+    .toc{
+      position: sticky;
+      top: 70px;
+      padding: 14px;
+    }
+    .toc h2{
+      font-size: 14px;
+      margin:0 0 10px;
+      color: var(--text);
+    }
+    .toc a{
+      display:block;
+      padding: 8px 10px;
+      margin: 2px 0;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--muted);
+      border: 1px solid transparent;
+    }
+    .toc a:hover{
+      color: var(--text);
+      border-color: rgba(34,48,83,.92);
+      background: rgba(15,22,40,.75);
+    }
+    .toc .sub{
+      margin-left: 10px;
+      opacity: .95;
+      font-size: 13px;
+    }
+    .toc .meta{
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(34,48,83,.6);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* Content */
+    section.block{ padding: 18px; }
+    section.block h2{ margin:0 0 10px; }
+    section.block h3{
+      margin: 18px 0 8px;
+      font-size: 15px;
+      color: var(--text);
+      letter-spacing: .15px;
+    }
+    section.block ul{
+      margin: 10px 0 0 18px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    section.block li{ margin: 6px 0; }
+    hr.sep{
+      border:0;
+      border-top:1px solid rgba(34,48,83,.7);
+      margin: 16px 0;
+    }
+
+    /* Code */
+    code, pre{ font-family: var(--mono); }
+    code{
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(34,48,83,.9);
+      background: rgba(10,18,36,.9);
+      color: rgba(230,232,239,.95);
+      font-size: 12.5px;
+    }
+    pre{
+      margin: 12px 0 0;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(10,18,36,.95);
+      border: 1px solid rgba(34,48,83,.92);
+      overflow: auto;
+      line-height: 1.55;
+      font-size: 12.5px;
+    }
+    .callout{
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(34,48,83,.92);
+      background: rgba(15,22,40,.75);
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .callout strong{ color: var(--text); }
+    .callout.ok{ border-color: rgba(121,242,192,.28); }
+    .callout.warn{ border-color: rgba(255,204,102,.28); }
+    .callout.info{ border-color: rgba(106,166,255,.28); }
+
+    /* Grid blocks */
+    .two-col{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+    @media (max-width: 980px){
+      .two-col{ grid-template-columns: 1fr; }
+    }
+
+    /* Mermaid blocks (no JS dependency, you can render in README; here we show the code) */
+    .diagram{
+      border-radius: 16px;
+      border: 1px solid rgba(34,48,83,.92);
+      background: rgba(10,18,36,.95);
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .diagram .label{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .diagram .label span{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .diagram .label button{
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(34,48,83,.92);
+      background: rgba(18,26,43,.65);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .diagram .label button:hover{
+      border-color: rgba(106,166,255,.55);
+      box-shadow: 0 0 0 3px rgba(106,166,255,.12);
+    }
+
+    /* Footer */
+    footer{
+      padding: 18px 0 28px;
+      border-top: 1px solid rgba(34,48,83,.85);
+      color: var(--muted);
+    }
+    footer .footgrid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      footer .footgrid{ grid-template-columns: 1fr; }
+    }
+    .footnote{
+      font-size: 12.5px;
+      line-height: 1.65;
+    }
+    .pill{
+      display:inline-block;
+      padding: 4px 10px;
+      border: 1px solid rgba(34,48,83,.95);
+      border-radius: 999px;
+      color: var(--muted);
+      margin-right: 8px;
+      font-size: 12px;
+      background: rgba(18,26,43,.55);
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Dit is een test</h1>
+  <!-- Sticky top bar -->
+  <div class="topbar" role="navigation" aria-label="Top navigation">
+    <div class="wrap topbar-inner">
+      <div class="brand" aria-label="Site brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h3>Kubernetes + Spring Boot</h3>
+          <small>GitHub Pages — Praktische implementatieguide</small>
+        </div>
+      </div>
+
+      <div class="search" aria-label="Search section">
+        <input id="search" type="search" placeholder="Zoek in de guide (bijv. ingress, probes, hpa, secrets)..." />
+        <span class="kbd" title="Tip: Ctrl/⌘ + K">Ctrl/⌘ K</span>
+      </div>
+
+      <a class="btn" href="#download">Checklist</a>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div class="card pad">
+        <h1>Kubernetes + Spring Boot — end-to-end guide</h1>
+        <p class="subtitle">
+          Deze pagina is bedoeld als “single source of truth” voor een productie-achtige setup: container image bouw,
+          Kubernetes manifests, config/secrets, probes, ingress/TLS, autoscaling (HPA), observability, security basics
+          en CI/CD met GitHub Actions. Inclusief Mermaid-diagrammen (copy/paste naar README voor rendering).
+        </p>
+
+        <div class="badges" aria-label="Status badges">
+          <span class="badge"><span class="dot"></span> Kubernetes manifests</span>
+          <span class="badge"><span class="dot green"></span> Spring Boot + Actuator</span>
+          <span class="badge"><span class="dot"></span> Ingress + TLS</span>
+          <span class="badge"><span class="dot green"></span> Autoscaling (HPA)</span>
+          <span class="badge"><span class="dot warn"></span> Security checklist</span>
+        </div>
+
+        <div class="navchips" aria-label="Primary sections">
+          <a class="btn primary" href="#quickstart">Quickstart</a>
+          <a class="btn" href="#architecture">Architectuur</a>
+          <a class="btn" href="#container">Containerization</a>
+          <a class="btn" href="#k8s">Kubernetes manifests</a>
+          <a class="btn" href="#ingress">Ingress & TLS</a>
+          <a class="btn" href="#hpa">Autoscaling</a>
+          <a class="btn" href="#observability">Observability</a>
+          <a class="btn" href="#cicd">CI/CD</a>
+          <a class="btn" href="#security">Security</a>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <h2>Repository layout (aanbevolen)</h2>
+        <pre><code>.
+├─ index.html                # GitHub Pages (deze pagina)
+├─ README.md                 # Mermaid diagrammen renderen hier goed
+├─ app/                      # Spring Boot project
+│  ├─ src/main/java/...
+│  ├─ src/main/resources/
+│  │  └─ application.yml
+│  ├─ pom.xml (of build.gradle)
+│  └─ Dockerfile
+└─ k8s/
+   ├─ namespace.yaml
+   ├─ deployment.yaml
+   ├─ service.yaml
+   ├─ configmap.yaml
+   ├─ secret.yaml
+   ├─ ingress.yaml
+   ├─ hpa.yaml
+   └─ networkpolicy.yaml (optioneel)</code></pre>
+
+        <div class="callout info" style="margin-top:12px;">
+          <strong>Tip:</strong> zet Mermaid diagrammen zowel in <code>README.md</code> als hier als codeblock. GitHub rendert Mermaid standaard in Markdown.
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap layout">
+      <!-- Table of contents -->
+      <aside class="card toc" aria-label="Table of contents">
+        <h2>Inhoud</h2>
+        <a href="#quickstart">1. Quickstart</a>
+        <a class="sub" href="#qs-prereqs">— Prereqs</a>
+        <a class="sub" href="#qs-run">— Build/Push/Deploy</a>
+
+        <a href="#architecture">2. Architectuur</a>
+        <a class="sub" href="#arch-flow">— Request flow</a>
+        <a class="sub" href="#arch-objects">— K8s objecten</a>
+
+        <a href="#container">3. Containerization</a>
+        <a class="sub" href="#container-dockerfile">— Dockerfile</a>
+        <a class="sub" href="#container-sbom">— SBOM & scan</a>
+
+        <a href="#k8s">4. Kubernetes manifests</a>
+        <a class="sub" href="#k8s-namespace">— Namespace</a>
+        <a class="sub" href="#k8s-deploy">— Deployment</a>
+        <a class="sub" href="#k8s-svc">— Service</a>
+        <a class="sub" href="#k8s-config">— ConfigMap & Secret</a>
+        <a class="sub" href="#k8s-probes">— Probes</a>
+
+        <a href="#ingress">5. Ingress & TLS</a>
+        <a class="sub" href="#ingress-basic">— Ingress</a>
+        <a class="sub" href="#ingress-tls">— TLS</a>
+
+        <a href="#hpa">6. Autoscaling</a>
+        <a class="sub" href="#hpa-basic">— HPA</a>
+        <a class="sub" href="#hpa-tuning">— Tuning</a>
+
+        <a href="#observability">7. Observability</a>
+        <a class="sub" href="#obs-actuator">— Actuator</a>
+        <a class="sub" href="#obs-logs">— Logs</a>
+        <a class="sub" href="#obs-metrics">— Metrics</a>
+
+        <a href="#cicd">8. CI/CD (GitHub Actions)</a>
+        <a href="#security">9. Security checklist</a>
+        <a href="#download">10. Deploy checklist</a>
+
+        <div class="meta">
+          <div><span class="pill">Doel</span> productie-achtige baseline</div>
+          <div><span class="pill">Scope</span> single service + ingress</div>
+          <div><span class="pill">Output</span> copy/paste manifests</div>
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <div>
+        <!-- Quickstart -->
+        <section class="card block" id="quickstart">
+          <h2>1) Quickstart</h2>
+          <p>
+            Een minimale, werkbare flow: image bouwen, pushen naar registry (bijv. GHCR), manifests toepassen en verifiëren.
+            Dit is bedoeld als “smoke test” voordat je gaat tunen op security, autoscaling en observability.
+          </p>
+
+          <h3 id="qs-prereqs">Prereqs</h3>
+          <ul>
+            <li><strong>Kubernetes cluster</strong> (minikube/kind voor lokaal, of managed cluster).</li>
+            <li><strong>kubectl</strong> geconfigureerd naar je cluster (<code>kubectl config current-context</code>).</li>
+            <li><strong>Container runtime</strong> (Docker of Podman).</li>
+            <li><strong>Registry</strong> (GHCR aanbevolen voor GitHub repos): <code>ghcr.io/&lt;org&gt;/&lt;image&gt;</code>.</li>
+          </ul>
+
+          <h3 id="qs-run">Build / Push / Deploy</h3>
+          <pre><code># 0) (optioneel) namespace aanmaken
+kubectl apply -f k8s/namespace.yaml
+
+# 1) build image
+docker build -t ghcr.io/&lt;org&gt;/springboot-app:1.0.0 ./app
+
+# 2) login + push (GHCR voorbeeld)
+# docker login ghcr.io
+docker push ghcr.io/&lt;org&gt;/springboot-app:1.0.0
+
+# 3) deploy
+kubectl apply -f k8s/
+
+# 4) verifiëren
+kubectl get all -n app
+kubectl describe deploy springboot-app -n app
+kubectl logs -n app deploy/springboot-app --tail=120
+
+# 5) ingress check (indien ingeschakeld)
+kubectl get ingress -n app</code></pre>
+
+          <div class="two-col">
+            <div class="callout ok">
+              <strong>Succescriteria:</strong> pods zijn <code>Ready</code>, deployment rolt uit zonder crashloops, en de
+              service/ingress routeert verkeer naar je app.
+            </div>
+            <div class="callout warn">
+              <strong>Veelvoorkomende fout:</strong> image pull errors (registry auth of verkeerde tag). Check:
+              <code>kubectl describe pod ...</code> → “Events”.
+            </div>
+          </div>
+        </section>
+
+        <!-- Architecture -->
+        <section class="card block" id="architecture">
+          <h2>2) Architectuur</h2>
+          <p>
+            Kubernetes is een control plane rond declaratieve state. Je beschrijft gewenste resources (Deployment, Service, Ingress),
+            Kubernetes convergeert naar die state. De diagrammen hieronder helpen om je request path en object-relaties scherp te krijgen.
+          </p>
+
+          <h3 id="arch-flow">Request flow</h3>
+          <div class="diagram">
+            <div class="label">
+              <span>Mermaid — request flow (copy/paste naar README.md)</span>
+              <button data-copy="#m-flow">Copy</button>
+            </div>
+            <pre id="m-flow"><code>flowchart LR
+  U[User / Client] -->|HTTPS| DNS[DNS Record]
+  DNS --> LB[LoadBalancer / Ingress Controller]
+  LB -->|rules| IG[Ingress]
+  IG --> SVC[Service (ClusterIP)]
+  SVC --> P1[Pod: Spring Boot]
+  SVC --> P2[Pod: Spring Boot]
+  P1 -->|JDBC| DB[(Database)]
+  P2 -->|JDBC| DB</code></pre>
+          </div>
+
+          <h3 id="arch-objects">Kubernetes objecten (rol in één zin)</h3>
+          <ul>
+            <li><strong>Deployment:</strong> desired state voor replica’s en rolling updates.</li>
+            <li><strong>Service:</strong> stabiele endpoint + load balancing naar pods.</li>
+            <li><strong>Ingress:</strong> L7 routing (host/path) naar Services; vaak i.c.m. TLS.</li>
+            <li><strong>ConfigMap/Secret:</strong> externe configuratie zonder rebuild; Secret voor gevoelige data.</li>
+            <li><strong>HPA:</strong> schaalt replica’s o.b.v. metrics (CPU/memory/custom).</li>
+          </ul>
+
+          <hr class="sep" />
+
+          <h3>“What runs where?” (component view)</h3>
+          <div class="diagram">
+            <div class="label">
+              <span>Mermaid — component view</span>
+              <button data-copy="#m-components">Copy</button>
+            </div>
+            <pre id="m-components"><code>flowchart TB
+  subgraph Cluster[Kubernetes Cluster]
+    subgraph NS[Namespace: app]
+      D[Deployment] --> RS[ReplicaSet]
+      RS --> PODS[Pods]
+      PODS -->|labels| SVC[Service]
+      CM[ConfigMap] --> PODS
+      SEC[Secret] --> PODS
+      IG[Ingress] --> SVC
+      HPA[HPA] --> D
+    end
+  end</code></pre>
+          </div>
+        </section>
+
+        <!-- Containerization -->
+        <section class="card block" id="container">
+          <h2>3) Containerization</h2>
+          <p>
+            Doel: een klein, reproduceerbaar image met voorspelbare startup en een non-root runtime. Voor Spring Boot is
+            een multi-stage build gebruikelijk: build stage (Maven/Gradle) + runtime stage (JRE).
+          </p>
+
+          <h3 id="container-dockerfile">Voorbeeld Dockerfile (Maven, multi-stage)</h3>
+          <pre><code># app/Dockerfile
+# Stage 1: build
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /src
+COPY pom.xml .
+COPY src ./src
+RUN mvn -q -DskipTests package
+
+# Stage 2: runtime
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+
+# Non-root user
+RUN useradd -u 10001 -m appuser
+USER 10001
+
+COPY --from=build /src/target/*.jar /app/app.jar
+
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]</code></pre>
+
+          <div class="two-col">
+            <div class="callout info">
+              <strong>Actuator:</strong> enable health endpoints zodat Kubernetes probes kunnen werken.
+              Zet minimaal <code>management.endpoint.health.probes.enabled=true</code>.
+            </div>
+            <div class="callout warn">
+              <strong>Image tags:</strong> gebruik semver of git sha. Vermijd “latest” voor deployments; het maakt rollbacks en audits moeilijk.
+            </div>
+          </div>
+
+          <h3 id="container-sbom">SBOM & image scan (aanbevolen)</h3>
+          <ul>
+            <li>Genereer een SBOM (Software Bill of Materials) voor compliance/auditability.</li>
+            <li>Scan images op kwetsbaarheden voordat je deployt (CI stap).</li>
+          </ul>
+          <pre><code># Voorbeelden (tooling kan verschillen per stack)
+# SBOM (Syft)
+syft ghcr.io/&lt;org&gt;/springboot-app:1.0.0 -o cyclonedx-json &gt; sbom.json
+
+# Scan (Grype)
+grype ghcr.io/&lt;org&gt;/springboot-app:1.0.0</code></pre>
+        </section>
+
+        <!-- Kubernetes Manifests -->
+        <section class="card block" id="k8s">
+          <h2>4) Kubernetes manifests</h2>
+          <p>
+            Hieronder staat een consistente baseline: namespace, deployment, service, configmap, secret en probes. Alles is
+            gericht op een betrouwbare rollout (readiness), stabiele runtime (liveness), en configuratie via env/volumes.
+          </p>
+
+          <h3 id="k8s-namespace">Namespace</h3>
+          <pre><code># k8s/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app</code></pre>
+
+          <h3 id="k8s-config">ConfigMap & Secret</h3>
+          <pre><code># k8s/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: springboot-config
+  namespace: app
+data:
+  SPRING_PROFILES_ACTIVE: "k8s"
+  SERVER_PORT: "8080"
+  # Voorbeeld: log-level tuning
+  LOGGING_LEVEL_ROOT: "INFO"</code></pre>
+
+          <pre><code># k8s/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: springboot-secrets
+  namespace: app
+type: Opaque
+stringData:
+  # Voorbeeld (nooit echte secrets hardcoden in Git; gebruik sealed-secrets of externe secret store)
+  DB_USERNAME: "appuser"
+  DB_PASSWORD: "change-me"</code></pre>
+
+          <h3 id="k8s-deploy">Deployment (probes, resources, securityContext)</h3>
+          <pre><code># k8s/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-app
+  namespace: app
+  labels:
+    app: springboot-app
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: springboot-app
+  template:
+    metadata:
+      labels:
+        app: springboot-app
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: app
+          image: ghcr.io/&lt;org&gt;/springboot-app:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: springboot-config
+            - secretRef:
+                name: springboot-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3</code></pre>
+
+          <h3 id="k8s-svc">Service</h3>
+          <pre><code># k8s/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-app
+  namespace: app
+spec:
+  type: ClusterIP
+  selector:
+    app: springboot-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080</code></pre>
+
+          <h3 id="k8s-probes">Spring Boot actuator configuratie (example)</h3>
+          <pre><code># app/src/main/resources/application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: "never"
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true</code></pre>
+
+          <div class="callout info" style="margin-top:12px;">
+            <strong>Waarom probes:</strong> readiness voorkomt dat verkeer naar een pod gaat die nog warm-up doet; liveness herstart
+            een pod die “hangt”. Dit verhoogt stabiliteit en versnelt incident recovery.
+          </div>
+        </section>
+
+        <!-- Ingress -->
+        <section class="card block" id="ingress">
+          <h2>5) Ingress & TLS</h2>
+          <p>
+            Ingress brengt L7 routing (host/path) naar je service. TLS termination gebeurt meestal in de ingress controller.
+            De exacte annotations verschillen per controller (NGINX, Traefik, etc.).
+          </p>
+
+          <h3 id="ingress-basic">Ingress (voorbeeld: NGINX Ingress)</h3>
+          <pre><code># k8s/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: springboot-app
+  namespace: app
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: springboot-app
+                port:
+                  number: 80</code></pre>
+
+          <h3 id="ingress-tls">TLS (conceptueel)</h3>
+          <ul>
+            <li><strong>Optie A:</strong> handmatig een TLS secret aanmaken met cert/key.</li>
+            <li><strong>Optie B:</strong> cert-manager inzetten voor automatische certificaten (Let’s Encrypt).</li>
+          </ul>
+
+          <div class="diagram">
+            <div class="label">
+              <span>Mermaid — TLS termination overview</span>
+              <button data-copy="#m-tls">Copy</button>
+            </div>
+            <pre id="m-tls"><code>sequenceDiagram
+  participant C as Client
+  participant I as Ingress Controller
+  participant S as Service
+  participant P as Pod (Spring Boot)
+
+  C->>I: HTTPS request (TLS)
+  I->>I: TLS termination (cert/secret)
+  I->>S: HTTP request
+  S->>P: Forward to Pod
+  P-->>S: Response
+  S-->>I: Response
+  I-->>C: HTTPS response</code></pre>
+          </div>
+        </section>
+
+        <!-- HPA -->
+        <section class="card block" id="hpa">
+          <h2>6) Autoscaling (HPA)</h2>
+          <p>
+            HPA schaalt replica’s op basis van metrics. De snelste start is CPU-based scaling. Voor stabiele scaling is resource
+            sizing (requests/limits) cruciaal. Zonder requests is HPA onbetrouwbaar.
+          </p>
+
+          <h3 id="hpa-basic">HPA (CPU target)</h3>
+          <pre><code># k8s/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: springboot-app
+  namespace: app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: springboot-app
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65</code></pre>
+
+          <h3 id="hpa-tuning">Tuning richtlijnen</h3>
+          <ul>
+            <li>Stel <code>requests</code> realistisch in; HPA gebruikt dit als referentie voor utilization.</li>
+            <li>Voorkom “thrashing”: kies conservatieve targets en voldoende startup budget (readiness delay).</li>
+            <li>Overweeg custom metrics (RPS/latency) als CPU geen goede proxy is voor load.</li>
+          </ul>
+        </section>
+
+        <!-- Observability -->
+        <section class="card block" id="observability">
+          <h2>7) Observability</h2>
+          <p>
+            Een productie-achtige baseline bestaat uit: health endpoints (probes), structured logging, metrics en (optioneel) tracing.
+            Start met Actuator + Prometheus endpoint; breid daarna uit.
+          </p>
+
+          <h3 id="obs-actuator">Actuator endpoints</h3>
+          <ul>
+            <li><code>/actuator/health/liveness</code> en <code>/actuator/health/readiness</code> voor probes.</li>
+            <li><code>/actuator/metrics</code> en <code>/actuator/prometheus</code> voor metrics scraping.</li>
+          </ul>
+
+          <h3 id="obs-logs">Logging (praktisch)</h3>
+          <ul>
+            <li>Log naar stdout/stderr (container best practice).</li>
+            <li>Gebruik consistente correlation IDs (bijv. via filters) als je meerdere services hebt.</li>
+            <li>Overweeg JSON logging voor parsing in een log pipeline.</li>
+          </ul>
+
+          <h3 id="obs-metrics">Metrics (conceptueel pad)</h3>
+          <div class="diagram">
+            <div class="label">
+              <span>Mermaid — metrics pipeline (hoog niveau)</span>
+              <button data-copy="#m-metrics">Copy</button>
+            </div>
+            <pre id="m-metrics"><code>flowchart LR
+  APP[Spring Boot + Micrometer] -->|/actuator/prometheus| PR[Prometheus]
+  PR --> G[Grafana Dashboards]
+  PR --> A[Alertmanager]</code></pre>
+          </div>
+        </section>
+
+        <!-- CI/CD -->
+        <section class="card block" id="cicd">
+          <h2>8) CI/CD (GitHub Actions)</h2>
+          <p>
+            Doel: bij elke push naar main een image builden, taggen (sha/semver), pushen naar GHCR, en optioneel deployen.
+            Voor een “legit” baseline: voeg SBOM + vulnerability scan toe.
+          </p>
+
+          <pre><code># .github/workflows/build.yaml (schets)
+# - checkout
+# - login GHCR
+# - buildx build/push
+# - (optioneel) sbom + scan
+# - (optioneel) kubectl apply via OIDC/cluster creds</code></pre>
+
+          <div class="callout warn">
+            <strong>Praktisch:</strong> deployment vanuit Actions vereist cluster credentials (of OIDC naar je cloud). Voor een starter repo kun je
+            “build & push” automatiseren en deployment handmatig houden totdat je IAM/permissions strak staan.
+          </div>
+        </section>
+
+        <!-- Security -->
+        <section class="card block" id="security">
+          <h2>9) Security checklist (baseline)</h2>
+          <p>
+            Dit is geen volledige hardening guide, maar een pragmatische set maatregelen die je repo er volwassen uit laat zien
+            en echte risico’s reduceert.
+          </p>
+
+          <ul>
+            <li><strong>Non-root runtime:</strong> runAsNonRoot + user in image.</li>
+            <li><strong>Least privilege:</strong> drop Linux capabilities, no privilege escalation.</li>
+            <li><strong>Read-only filesystem:</strong> zet <code>readOnlyRootFilesystem</code> aan waar mogelijk.</li>
+            <li><strong>Secrets management:</strong> geen plaintext secrets in Git; gebruik sealed secrets of externe secret store.</li>
+            <li><strong>NetworkPolicies:</strong> default-deny + expliciet allowed egress/ingress (indien je CNI dit ondersteunt).</li>
+            <li><strong>Image hygiene:</strong> scan, SBOM, pin base images (digests) waar mogelijk.</li>
+            <li><strong>Resource limits:</strong> voorkom noisy neighbor en OOM-problemen.</li>
+          </ul>
+
+          <h3>Voorbeeld NetworkPolicy (optioneel)</h3>
+          <pre><code># k8s/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: springboot-default-deny
+  namespace: app
+spec:
+  podSelector:
+    matchLabels:
+      app: springboot-app
+  policyTypes: ["Ingress","Egress"]
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53</code></pre>
+
+          <div class="callout info">
+            <strong>Let op:</strong> NetworkPolicies vereisen ondersteuning door je CNI plugin; in sommige lokale clusters is dit beperkt.
+          </div>
+        </section>
+
+        <!-- Checklist -->
+        <section class="card block" id="download">
+          <h2>10) Deploy checklist</h2>
+          <div class="two-col">
+            <div class="callout ok">
+              <strong>Voor deploy</strong>
+              <ul>
+                <li>Image tag pinned (geen latest)</li>
+                <li>Requests/limits ingesteld</li>
+                <li>Actuator probes werken lokaal</li>
+                <li>Config/Secrets extern beheerd</li>
+              </ul>
+            </div>
+            <div class="callout info">
+              <strong>Na deploy</strong>
+              <ul>
+                <li><code>kubectl get pods -n app</code> (Ready)</li>
+                <li><code>kubectl logs</code> (geen errors)</li>
+                <li>Ingress host resolved + TLS ok</li>
+                <li>HPA metrics beschikbaar</li>
+              </ul>
+            </div>
+          </div>
+
+          <hr class="sep" />
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Simple UX helpers: Ctrl/Cmd+K focus search, and "Copy" buttons for diagrams
+    (function () {
+      const search = document.getElementById("search");
+
+      window.addEventListener("keydown", (e) => {
+        const isMac = navigator.platform.toUpperCase().includes("MAC");
+        const k = e.key.toLowerCase() === "k";
+        const mod = isMac ? e.metaKey : e.ctrlKey;
+        if (mod && k) {
+          e.preventDefault();
+          search?.focus();
+        }
+      });
+
+      function copyTextFrom(preSelector) {
+        const el = document.querySelector(preSelector);
+        if (!el) return;
+        const text = el.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          // Lightweight feedback
+          const btn = document.querySelector(`button[data-copy="${preSelector}"]`);
+          if (!btn) return;
+          const original = btn.textContent;
+          btn.textContent = "Copied";
+          setTimeout(() => (btn.textContent = original), 900);
+        });
+      }
+
+      document.querySelectorAll("button[data-copy]").forEach((btn) => {
+        btn.addEventListener("click", () => copyTextFrom(btn.getAttribute("data-copy")));
+      });
+
+      // Optional: client-side "search highlight" (simple)
+      // Filters by scrolling to first match across headings and code blocks.
+      search?.addEventListener("change", () => {
+        const q = (search.value || "").trim().toLowerCase();
+        if (!q) return;
+
+        const candidates = Array.from(document.querySelectorAll("h2,h3,p,li,pre"));
+        const hit = candidates.find(el => (el.innerText || "").toLowerCase().includes(q));
+        if (hit) hit.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    })();
+  </script>
 </body>
 </html>
